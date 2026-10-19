@@ -1,1 +1,4 @@
-UI.Crafting.ToggleAllRecipes: Toggle showing all recipes
+UI: {
+	Crafting.ToggleAllRecipes: Toggle showing all recipes
+	CraftTree.DisplayName: Crafting Tree
+}
