@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Terraria Test": {
+    "Terraria Client (Vanilla)": {
       "commandName": "Executable",
       "executablePath": "$(DotNetName)",
       "commandLineArgs": "$(tMLPath)",

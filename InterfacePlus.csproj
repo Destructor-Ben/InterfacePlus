@@ -8,7 +8,4 @@
   <ItemGroup>
     <Using Static="true" Include="InterfacePlus.GlobalUsings" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Content\" />
-  </ItemGroup>
 </Project>
