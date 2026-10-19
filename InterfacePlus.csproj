@@ -1,0 +1,14 @@
+﻿<Project Sdk="Tomat.Terraria.ModLoader.Sdk/2.1.1">
+  <!-- 1.4.5 Support -->
+  <PropertyGroup>
+    <TmlVersion>dev</TmlVersion>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Static="true" Include="InterfacePlus.GlobalUsings" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Content\" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,5 @@
+displayName = Interface+
+author = Destructor_Ben
+homepage = https://github.com/Destructor-Ben/InterfacePlus
+version = 1.0.0.0
+side = Client
