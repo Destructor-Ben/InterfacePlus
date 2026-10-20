@@ -1,37 +1,20 @@
+using Terraria.GameContent.UI;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
+using Terraria.UI.Gamepad;
 
 namespace InterfacePlus.Content;
-
-// TODO: temporary
-public class TestCommand : ModCommand
-{
-    public override CommandType Type
-        => CommandType.Chat;
-    public override string Command
-        => "craft-tree";
-
-    public override string Description
-        => "TEMP";
-
-    public override void SetStaticDefaults() {
-    }
-
-    public override void Action(CommandCaller caller, string input, string[] args)
-    {
-        if (!int.TryParse(args[0], out int item))
-            return;
-
-        CraftTreeUI.OpenForItem(item);
-    }
-}
 
 public class CraftTreeUI : UIState, ILoadable
 {
     public static CraftTreeUI Instance { get; private set; }
 
     public int? RootItemType = null;
+
+    private NewCraftingUI.RecipeFilter craftingUiFilter;
+    private bool wasInGuideCraftMenu;
+    private int talkNpc;
 
     private UIElement rootElement;
     private UIPanel rootPanel;
@@ -51,10 +34,17 @@ public class CraftTreeUI : UIState, ILoadable
         CreateUI();
     }
 
-    public static void OpenForItem(int itemType)
+    public static void OpenForItem(int itemType, bool quiet = false)
     {
+        Instance.craftingUiFilter = NewCraftingUI._instance._filter;
+        Instance.wasInGuideCraftMenu = Main.InGuideCraftMenu;
+        Instance.talkNpc = Main.LocalPlayer.talkNPC;
+
         Instance.SetRootItem(itemType);
         IngameFancyUI.OpenUIState(Instance);
+
+        if (!quiet)
+            SoundEngine.PlaySound(SoundID.MenuOpen);
     }
 
     public void SetRootItem(int itemType)
@@ -62,8 +52,9 @@ public class CraftTreeUI : UIState, ILoadable
         RootItemType = itemType;
     }
 
+    // TODO: bigger main panel
     // TODO: copy the camera control UI from the unfinished incremental mod
-    // TODO: Make a crafting indicator like the one used in NewCraftingUI showing the ingredients and result
+    // TODO: Make a crafting indicator like the one used in NewCraftingUI showing the ingredients and result and crafting bench
     private void CreateUI()
     {
         rootElement = new UIElement
@@ -105,7 +96,28 @@ public class CraftTreeUI : UIState, ILoadable
 
     private void GoBack()
     {
-        // TODO: go back to the recipe browser
         IngameFancyUI.Close();
+
+        Main.InGuideCraftMenu = wasInGuideCraftMenu;
+        if (Main.InGuideCraftMenu)
+        {
+            // Modified from Main.NPCChatText_GuideReverseCrafting
+            Main.playerInventory = true;
+            Main.npcChatText = "";
+            Main.LocalPlayer.SetTalkNPC(talkNpc);
+            NewCraftingUI.Open(quiet: true);
+
+            Main.TryChangePipsPage(Main.PipPage.Recipes);
+            UILinkPointNavigator.GoToDefaultPage();
+        }
+        else
+        {
+            Player.OpenInventory(quiet: true);
+            NewCraftingUI.Open(quiet: true, craftingUiFilter);
+        }
+
+        craftingUiFilter = null;
+        wasInGuideCraftMenu = false;
+        talkNpc = -1;
     }
 }
