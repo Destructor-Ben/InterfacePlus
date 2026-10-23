@@ -7,7 +7,7 @@ namespace InterfacePlus.Content;
 
 public class CraftingUITweaks : ILoadable
 {
-    private bool showAllRecipes = false;
+    private bool showAllRecipes = false; // TODO: save this
     private bool ShowAllRecipes => !Main.InGuideCraftMenu && showAllRecipes;
 
     private UIImageButton toggleAllRecipesButton;
