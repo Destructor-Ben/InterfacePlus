@@ -140,10 +140,8 @@ public class CraftTreeUI : UIState, ILoadable
         CreateButton(Assets.Textures.UI.TransformButton_MoveLeft.Asset,  () => craftTree.HandleTranslate(-Vector2.UnitX));
         left -= Padding;
 
-        // TODO: add 'go to root item' button
-        // TODO: add 'fit whole tree' button
-        CreateButton(Assets.Textures.UI.TransformButton_ZoomOut.Asset, () => craftTree.FitTree());
-        CreateButton(Assets.Textures.UI.TransformButton_ZoomIn.Asset,  () => craftTree.ResetTransform());
+        CreateButton(Assets.Textures.UI.TransformButton_FitTree.Asset, () => craftTree.FitTree());
+        CreateButton(Assets.Textures.UI.TransformButton_Reset.Asset,  () => craftTree.ResetTransform());
 
         return;
 
