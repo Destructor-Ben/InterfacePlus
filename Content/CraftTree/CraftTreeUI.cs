@@ -120,6 +120,50 @@ public class CraftTreeUI : UIState, ILoadable
             VAlign = 1f,
         };
         rootPanel.Append(craftTree);
+
+        CreateTopBarUI();
+    }
+
+    private void CreateTopBarUI()
+    {
+        float left = 0;
+
+        // TODO: move these direct mutations into method calls in CraftTreeView
+        CreateButton("ZoomIn",   () => craftTree.Scale *= CraftTreeView.ScaleSpeed);
+        CreateButton("ZoomOut", () => craftTree.Scale /= CraftTreeView.ScaleSpeed);
+
+        // TODO: move these direct mutations into method calls in CraftTreeView
+        // TODO: translation speed is not perfect
+        CreateButton("MoveUp", () => craftTree.Position.Y -= CraftTreeView.TranslateSpeed);
+        CreateButton("MoveDown",   () => craftTree.Position.Y += CraftTreeView.TranslateSpeed);
+        CreateButton("MoveLeft", () => craftTree.Position.X -= CraftTreeView.TranslateSpeed);
+        CreateButton("MoveRight",   () => craftTree.Position.X += CraftTreeView.TranslateSpeed);
+
+        // TODO: add 'go to root item' button
+        // TODO: add 'fit whole tree' button
+
+        return;
+
+        void CreateButton(string iconName, Action runWhileClicked)
+        {
+            var button = new UIImageButton(ModInstance.Assets.Request<Texture2D>($"Assets/Textures/UI/TransformButton_{iconName}"))
+            {
+                VAlign = 0.5f,
+                HAlign = 1f,
+                Left = { Pixels = left },
+            };
+
+            button.SetVisibility(1f, 1f);
+            button.SetHoverImage(ModInstance.Assets.Request<Texture2D>("Assets/Textures/UI/TransformButton_Hover"));
+            button.OnUpdate += (element) =>
+            {
+                if (element.IsMouseHovering && Main.mouseLeft)
+                    runWhileClicked();
+            };
+
+            topBar.Append(button);
+            left -= button.Width.Pixels + 5f;
+        }
     }
 
     private void GoBack()
@@ -167,7 +211,7 @@ public class CraftTreeUI : UIState, ILoadable
             return;
 
         // TODO: temp
-        spriteBatch.Draw(TextureAssets.MagicPixel.Value, topBar.GetDimensions().ToRectangle(), null, Color.Red);
+        // spriteBatch.Draw(TextureAssets.MagicPixel.Value, topBar.GetDimensions().ToRectangle(), null, Color.Red);
 
         // TODO: how to handle multiple recipes?
         var recipe = Main.recipe.FirstOrDefault(r => r.createItem.type == RootItemType);

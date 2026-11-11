@@ -6,5 +6,6 @@ public record struct CraftTreeNode(
     int Count,
     // TODO: ]]
     int TreeWidth, // TODO: explain this
+    // TODO: add TreeHeight
     List<CraftTreeNode> Children
 );

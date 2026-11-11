@@ -6,7 +6,7 @@ using RecipeEntry = Terraria.GameContent.UI.NewCraftingUI.RecipeEntry;
 
 namespace InterfacePlus.Content;
 
-// TODO: fix flicker when typing
+// TODO: fix flicker of selected recipe when typing
 public class CraftingUITweaks : ILoadable
 {
     private bool showAllRecipes = false; // TODO: save this
