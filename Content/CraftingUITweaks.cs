@@ -1,3 +1,4 @@
+using InterfacePlus.Content.CraftTree;
 using Terraria.GameContent.UI;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ModLoader.UI;
