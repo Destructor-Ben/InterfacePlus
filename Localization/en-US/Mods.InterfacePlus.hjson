@@ -1,4 +1,8 @@
 UI: {
 	Crafting.ToggleAllRecipes: Toggle showing all recipes
-	CraftTree.DisplayName: Crafting Tree
+	CraftTree: {
+	  DisplayName: Crafting Tree
+	  FitTree: Fit the crafting tree to the screen
+	  ResetTransform: Reset the scale and movement of the craft tree
+	}
 }

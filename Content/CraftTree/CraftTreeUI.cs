@@ -1,3 +1,4 @@
+using InterfacePlus.Core;
 using InterfacePlus.Utilities;
 using Terraria.GameContent.UI;
 using Terraria.GameContent.UI.Elements;
@@ -7,6 +8,7 @@ using Terraria.UI.Gamepad;
 
 namespace InterfacePlus.Content.CraftTree;
 
+// TODO: fix first opening being weirdly offset
 public class CraftTreeUI : UIState, ILoadable
 {
     public static CraftTreeUI Instance { get; private set; }
@@ -140,12 +142,12 @@ public class CraftTreeUI : UIState, ILoadable
         CreateButton(Assets.Textures.UI.TransformButton_MoveLeft.Asset,  () => craftTree.HandleTranslate(-Vector2.UnitX));
         left -= Padding;
 
-        CreateButton(Assets.Textures.UI.TransformButton_FitTree.Asset, () => craftTree.FitTree());
-        CreateButton(Assets.Textures.UI.TransformButton_Reset.Asset,  () => craftTree.ResetTransform());
+        CreateButton(Assets.Textures.UI.TransformButton_FitTree.Asset, () => craftTree.FitTree(),        true, ModInstance.GetLocalization("UI.CraftTree.FitTree"));
+        CreateButton(Assets.Textures.UI.TransformButton_Reset.Asset,   () => craftTree.ResetTransform(), true, ModInstance.GetLocalization("UI.CraftTree.ResetTransform"));
 
         return;
 
-        void CreateButton(Asset<Texture2D> icon, Action runWhileClicked)
+        void CreateButton(Asset<Texture2D> icon, Action action, bool singleClickEffect = false, LocalizedText tooltip = null)
         {
             var button = new UIImageButton(icon.WaitForMe())
             {
@@ -156,11 +158,32 @@ public class CraftTreeUI : UIState, ILoadable
 
             button.SetVisibility(1f, 1f);
             button.SetHoverImage(Assets.Textures.UI.TransformButton_Hover.Asset.WaitForMe());
-            button.OnUpdate += (element) =>
+
+            if (tooltip is not null)
             {
-                if (element.IsMouseHovering && Main.mouseLeft)
-                    runWhileClicked();
-            };
+                button.OnDraw += (element, _) =>
+                {
+                    if (element.IsMouseHovering)
+                        UICommon.TooltipMouseText(tooltip.Value);
+                };
+            }
+
+            if (singleClickEffect)
+            {
+                button.OnLeftClick += (_, _) =>
+                {
+                    SoundEngine.PlaySound(SoundID.MenuTick);
+                    action();
+                };
+            }
+            else
+            {
+                button.OnUpdate += (element) =>
+                {
+                    if (element.IsMouseHovering && Main.mouseLeft)
+                        action();
+                };
+            }
 
             topBar.Append(button);
             left -= button.Width.Pixels + Padding;

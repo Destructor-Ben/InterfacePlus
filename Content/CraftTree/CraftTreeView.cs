@@ -9,9 +9,8 @@ public class CraftTreeView : UIElement
     public Vector2 Position = Vector2.Zero;
     public float Scale = 1f;
 
-    public static float TranslateSpeed => 3f;
-    public static float ScaleSpeed => 1.02f;
-
+    private static float TranslateSpeed => 3f;
+    private static float ScaleSpeed => 1.02f;
     private static int IconVerticalShift => 75;
     private static int IconHorizontalShift => 75;
     private static bool EnableCentering => true;
@@ -29,15 +28,14 @@ public class CraftTreeView : UIElement
     public void HandleZoom(bool zoomIn)
     {
         if (zoomIn)
-            Scale *= CraftTreeView.ScaleSpeed;
+            Scale *= ScaleSpeed;
         else
-            Scale /= CraftTreeView.ScaleSpeed;
+            Scale /= ScaleSpeed;
     }
 
     public void HandleTranslate(Vector2 dir)
     {
-        // TODO: translation speed is not perfect
-        Position += CraftTreeView.TranslateSpeed * dir;
+        Position += TranslateSpeed * dir / Scale;
     }
 
     public void SetItem(int itemType)
