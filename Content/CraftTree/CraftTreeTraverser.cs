@@ -25,6 +25,9 @@ public static class CraftTreeTraverser
         // - npc loot
         // - chest loot
         // - tile drops
+        // TODO: how to handle crafting stations?
+        // TODO: configure options to expand things:
+        // - stupid loopds like walls
         var recipes = Main.recipe.Where(r => r.createItem.type == itemType).ToList();
         if (recipes.Count <= 0)
             return self;
