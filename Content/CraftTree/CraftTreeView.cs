@@ -6,6 +6,7 @@ namespace InterfacePlus.Content.CraftTree;
 
 // TODO: give this a border + proper background
 // TODO: allow exporting to a PNG
+// TODO: potentially show a dropdown to select which recipe to show
 public class CraftTreeView : UIElement
 {
     public Vector2 Position = Vector2.Zero;

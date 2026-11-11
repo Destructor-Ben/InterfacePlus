@@ -1,3 +1,4 @@
+using System.Numerics;
 using InterfacePlus.Core;
 using InterfacePlus.Utilities;
 using Terraria.GameContent.UI;
@@ -5,6 +6,7 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 using Terraria.UI.Gamepad;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace InterfacePlus.Content.CraftTree;
 
@@ -228,9 +230,11 @@ public class CraftTreeUI : UIState, ILoadable
     }
 
     // Modified from NewCraftingUI.DrawChildren()
-    // TODO: i think the mouse layer doesn't draw?
+    // TODO: how to handle overflow?
     private void DrawRecipe(SpriteBatch spriteBatch)
     {
+        const float Padding = 5f;
+
         if (RootItemType == ItemID.None)
             return;
 
@@ -245,23 +249,22 @@ public class CraftTreeUI : UIState, ILoadable
         // Craft slot
         var pos = topBar.GetInnerDimensions().Position();
         DrawItemSlot(spriteBatch, recipe.createItem, pos, out var bounds);
-
-        pos.X += bounds.Width;
+        pos.X += bounds.Width + Padding;
 
         // Craft icon
         spriteBatch.Draw(
             craftIcon.Value,
-            pos + bounds.Size() / 2f,
+            pos + Vector2.UnitY * bounds.Height / 2f,
             null,
             Color.White,
             0f,
-            craftIcon.Size() / 2f,
+            Vector2.UnitY * craftIcon.Height() / 2f,
             1f,
             SpriteEffects.None,
             0f
         );
 
-        pos.X += bounds.Width;
+        pos.X += craftIcon.Width() + Padding;
 
         // Ingredients
         int ingredientCount = recipe.requiredItem.Count;
@@ -272,7 +275,7 @@ public class CraftTreeUI : UIState, ILoadable
             UILinkPointNavigator.Shortcuts.NewCraftingUI_MaterialIndex = j;
             DrawItemSlot(spriteBatch, item, pos, out var _, 1f * ingredientScale);
 
-            pos.X += bounds.Width * ingredientScale + 5;
+            pos.X += bounds.Width * ingredientScale + Padding;
         }
 
         // Stations icon
@@ -289,17 +292,17 @@ public class CraftTreeUI : UIState, ILoadable
 
         spriteBatch.Draw(
             stationsIcon.Value,
-            pos + bounds.Size() / 2f,
+            pos + Vector2.UnitY * bounds.Height / 2f,
             null,
             Color.White,
             0f,
-            stationsIcon.Size() / 2f,
+            Vector2.UnitY * stationsIcon.Height() / 2f,
             1f,
             SpriteEffects.None,
             0f
         );
 
-        pos.X += bounds.Width;
+        pos.X += stationsIcon.Width() + Padding;
 
         // Crafting stations
         if (recipe.requiredTile >= 0) {
@@ -344,6 +347,7 @@ public class CraftTreeUI : UIState, ILoadable
     }
 
     // Returns true if the mouse is hovering
+    // TODO: customize the back panel used to be the same one as in the craft tree
     private static bool DrawItemSlot(SpriteBatch spriteBatch, Item item, Vector2 pos, out Rectangle bounds, float scale = 1f)
     {
         var inventoryBack = Main.inventoryBack;
