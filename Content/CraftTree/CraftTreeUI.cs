@@ -104,6 +104,7 @@ public class CraftTreeUI : UIState, ILoadable
         rootPanel.Append(craftTree);
     }
 
+    // TODO: restore the search text
     private void GoBack()
     {
         IngameFancyUI.Close();
