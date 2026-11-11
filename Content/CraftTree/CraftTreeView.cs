@@ -14,13 +14,15 @@ public class CraftTreeView : UIElement
 
     private static float TranslateSpeed => 3f;
     private static float ScaleSpeed => 1.02f;
+    private static float ScrollSpeed => 1.2f;
     private static int IconVerticalShift => 75;
     private static int IconHorizontalShift => 75;
     private static bool EnableCentering => true;
 
-    private static Asset<Texture2D> IconPanelTexture = Assets.Textures.UI.CraftTreePanel.Asset;
+    private static readonly Asset<Texture2D> IconPanelTexture = Assets.Textures.UI.CraftTreePanel.Asset;
 
     private readonly List<CraftTreeIcon> treeIcons = [];
+    private bool isMouseDragging = false;
 
     public CraftTreeView()
     {
@@ -31,6 +33,7 @@ public class CraftTreeView : UIElement
     {
         treeIcons.Clear();
         CraftTree = null;
+        isMouseDragging = false;
         ResetTransform();
     }
 
@@ -223,4 +226,49 @@ public class CraftTreeView : UIElement
         spriteBatch.GraphicsDevice.RasterizerState = rasterizerState;
         spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, DepthStencilState.None, rasterizerState, null, Main.UIScaleMatrix);
     }
+
+    #region Input
+
+    public override void ScrollWheel(UIScrollWheelEvent evt)
+    {
+        base.ScrollWheel(evt);
+
+        float scrollAmount = ScrollSpeed;
+        if (evt.ScrollWheelValue < 0)
+            scrollAmount = 1 / scrollAmount;
+
+        Scale *= scrollAmount;
+    }
+
+    public override void LeftMouseDown(UIMouseEvent evt)
+    {
+        base.LeftMouseDown(evt);
+
+        isMouseDragging = true;
+    }
+
+    public override void LeftMouseUp(UIMouseEvent evt)
+    {
+        base.LeftMouseUp(evt);
+
+        isMouseDragging = false;
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+
+        // Stop moving if the mouse has moved out of the ui
+        if (!IsMouseHovering) {
+            isMouseDragging = false;
+        }
+
+        // Mouse movement
+        if (isMouseDragging && IsMouseHovering) {
+            Position.X -= (Main.mouseX - Main.lastMouseX) / Scale;
+            Position.Y -= (Main.mouseY - Main.lastMouseY) / Scale;
+        }
+    }
+
+    #endregion
 }
