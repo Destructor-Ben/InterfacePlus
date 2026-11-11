@@ -1,4 +1,5 @@
 using InterfacePlus.Content.CraftTree;
+using InterfacePlus.Utilities;
 using Terraria.GameContent.UI;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ModLoader.UI;
@@ -58,8 +59,8 @@ public class CraftingUITweaks : ILoadable
     {
         var uiPanel = GetUIPanel(self);
 
-        var backgroundImageEnabled = ModInstance.Assets.Request<Texture2D>("Assets/Textures/UI/ToggleAllRecipesButton_Enabled", AssetRequestMode.ImmediateLoad);
-        var backgroundImageDisabled = ModInstance.Assets.Request<Texture2D>("Assets/Textures/UI/ToggleAllRecipesButton_Disabled", AssetRequestMode.ImmediateLoad);
+        var backgroundImageEnabled = Assets.Textures.UI.ToggleAllRecipesButton_Disabled.Asset.WaitForMe();
+        var backgroundImageDisabled = Assets.Textures.UI.ToggleAllRecipesButton_Enabled.Asset.WaitForMe();
         var hoverImage = Main.Assets.Request<Texture2D>("Images/UI/Bestiary/Button_Search_Border", AssetRequestMode.ImmediateLoad);
 
         toggleAllRecipesButton = new UIImageButton(showAllRecipes ? backgroundImageEnabled : backgroundImageDisabled) {

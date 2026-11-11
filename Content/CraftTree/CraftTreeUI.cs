@@ -1,3 +1,4 @@
+using InterfacePlus.Utilities;
 using Terraria.GameContent.UI;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ModLoader.UI;
@@ -38,7 +39,7 @@ public class CraftTreeUI : UIState, ILoadable
     public override void OnActivate()
     {
         craftIcon = Main.Assets.Request<Texture2D>("Images/UI/Craft");
-        stationsIcon = ModInstance.Assets.Request<Texture2D>("Assets/Textures/UI/CraftingStations");
+        stationsIcon = Assets.Textures.UI.CraftingStations.Asset;
 
         RemoveAllChildren();
         CreateUI();
@@ -129,24 +130,24 @@ public class CraftTreeUI : UIState, ILoadable
         float left = 0;
 
         // TODO: move these direct mutations into method calls in CraftTreeView
-        CreateButton("ZoomIn",   () => craftTree.Scale *= CraftTreeView.ScaleSpeed);
-        CreateButton("ZoomOut", () => craftTree.Scale /= CraftTreeView.ScaleSpeed);
+        CreateButton(Assets.Textures.UI.TransformButton_ZoomIn.Asset,  () => craftTree.Scale *= CraftTreeView.ScaleSpeed);
+        CreateButton(Assets.Textures.UI.TransformButton_ZoomOut.Asset, () => craftTree.Scale /= CraftTreeView.ScaleSpeed);
 
         // TODO: move these direct mutations into method calls in CraftTreeView
         // TODO: translation speed is not perfect
-        CreateButton("MoveUp", () => craftTree.Position.Y -= CraftTreeView.TranslateSpeed);
-        CreateButton("MoveDown",   () => craftTree.Position.Y += CraftTreeView.TranslateSpeed);
-        CreateButton("MoveLeft", () => craftTree.Position.X -= CraftTreeView.TranslateSpeed);
-        CreateButton("MoveRight",   () => craftTree.Position.X += CraftTreeView.TranslateSpeed);
+        CreateButton(Assets.Textures.UI.TransformButton_MoveUp.Asset,    () => craftTree.Position.Y -= CraftTreeView.TranslateSpeed);
+        CreateButton(Assets.Textures.UI.TransformButton_MoveDown.Asset,  () => craftTree.Position.Y += CraftTreeView.TranslateSpeed);
+        CreateButton(Assets.Textures.UI.TransformButton_MoveLeft.Asset,  () => craftTree.Position.X -= CraftTreeView.TranslateSpeed);
+        CreateButton(Assets.Textures.UI.TransformButton_MoveRight.Asset, () => craftTree.Position.X += CraftTreeView.TranslateSpeed);
 
         // TODO: add 'go to root item' button
         // TODO: add 'fit whole tree' button
 
         return;
 
-        void CreateButton(string iconName, Action runWhileClicked)
+        void CreateButton(Asset<Texture2D> icon, Action runWhileClicked)
         {
-            var button = new UIImageButton(ModInstance.Assets.Request<Texture2D>($"Assets/Textures/UI/TransformButton_{iconName}"))
+            var button = new UIImageButton(icon.WaitForMe())
             {
                 VAlign = 0.5f,
                 HAlign = 1f,
@@ -154,7 +155,7 @@ public class CraftTreeUI : UIState, ILoadable
             };
 
             button.SetVisibility(1f, 1f);
-            button.SetHoverImage(ModInstance.Assets.Request<Texture2D>("Assets/Textures/UI/TransformButton_Hover"));
+            button.SetHoverImage(Assets.Textures.UI.TransformButton_Hover.Asset.WaitForMe());
             button.OnUpdate += (element) =>
             {
                 if (element.IsMouseHovering && Main.mouseLeft)

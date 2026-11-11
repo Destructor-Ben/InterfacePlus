@@ -8,7 +8,7 @@ public class CraftTreeIcon : UIElement
     public int ItemType = ItemID.None;
     public CraftTreeIcon ParentIcon = null;
 
-    private readonly Asset<Texture2D> panelTexture = ModInstance.Assets.Request<Texture2D>("Assets/Textures/UI/CraftTreePanel");
+    private readonly Asset<Texture2D> panelTexture = Assets.Textures.UI.CraftTreePanel.Asset;
     private static int CornerSize => 10;
     private static int ConnectionLineWidth => 2;
     private static Color ConnectionLineColor => new(98, 105, 152);
