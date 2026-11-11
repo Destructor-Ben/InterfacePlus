@@ -18,6 +18,8 @@ public class CraftTreeView : UIElement
     private static int IconHorizontalShift => 75;
     private static bool EnableCentering => true;
 
+    private static Asset<Texture2D> IconPanelTexture = Assets.Textures.UI.CraftTreePanel.Asset;
+
     private readonly List<CraftTreeIcon> treeIcons = [];
 
     public CraftTreeView()
@@ -53,12 +55,16 @@ public class CraftTreeView : UIElement
 
     public void FitTree()
     {
-        var treeHitbox = new Rectangle();
+        var positions = treeIcons.Select(icon => icon.Position).ToArray();
+        var treeHitbox = Utils.BoundingRectangle(positions);
+        treeHitbox.Inflate(IconPanelTexture.Width(), IconPanelTexture.Height());
 
-        foreach (var icon in treeIcons)
-        {
+        var dims = GetDimensions();
+        float scaleX = dims.Width / treeHitbox.Width;
+        float scaleY = dims.Height / treeHitbox.Height;
 
-        }
+        Position = treeHitbox.Center();
+        Scale = Math.Min(scaleX, scaleY);
     }
 
     public void SetItem(int itemType)
@@ -107,12 +113,11 @@ public class CraftTreeView : UIElement
         const int ConnectionLineWidth = 2;
         Color connectionLineColor = new(98, 105, 152);
 
-        var panelTexture = Assets.Textures.UI.CraftTreePanel.Asset;
         var bounds = new Rectangle(
-            (int)icon.Position.X - panelTexture.Width() / 2,
-            (int)icon.Position.Y - panelTexture.Height() / 2,
-            panelTexture.Width(),
-            panelTexture.Height()
+            (int)icon.Position.X - IconPanelTexture.Width() / 2,
+            (int)icon.Position.Y - IconPanelTexture.Height() / 2,
+            IconPanelTexture.Width(),
+            IconPanelTexture.Height()
         );
 
         var transformedBounds = bounds.Transform(transform);
@@ -143,7 +148,7 @@ public class CraftTreeView : UIElement
 
         Utils.DrawSplicedPanel(
             spriteBatch,
-            panelTexture.Value,
+            IconPanelTexture.Value,
             bounds.X,
             bounds.Y,
             bounds.Width,
