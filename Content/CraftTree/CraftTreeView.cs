@@ -26,6 +26,20 @@ public class CraftTreeView : UIElement
         RemoveAllChildren();
     }
 
+    public void HandleZoom(bool zoomIn)
+    {
+        if (zoomIn)
+            Scale *= CraftTreeView.ScaleSpeed;
+        else
+            Scale /= CraftTreeView.ScaleSpeed;
+    }
+
+    public void HandleTranslate(Vector2 dir)
+    {
+        // TODO: translation speed is not perfect
+        Position += CraftTreeView.TranslateSpeed * dir;
+    }
+
     public void SetItem(int itemType)
     {
         var innerDimension = GetInnerDimensions();
@@ -33,6 +47,17 @@ public class CraftTreeView : UIElement
 
         var craftTree = CraftTreeTraverser.CreateCraftTree(itemType);
         AddCraftTreeIcon(craftTree, position);
+    }
+
+    public void ResetTransform()
+    {
+        Scale = 1f;
+        Position = Vector2.Zero;
+    }
+
+    public void FitTree()
+    {
+        // TODO
     }
 
     private void AddCraftTreeIcon(CraftTreeNode node, Vector2 position, CraftTreeIcon parent = null)

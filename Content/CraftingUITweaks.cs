@@ -59,8 +59,8 @@ public class CraftingUITweaks : ILoadable
     {
         var uiPanel = GetUIPanel(self);
 
-        var backgroundImageEnabled = Assets.Textures.UI.ToggleAllRecipesButton_Disabled.Asset.WaitForMe();
-        var backgroundImageDisabled = Assets.Textures.UI.ToggleAllRecipesButton_Enabled.Asset.WaitForMe();
+        var backgroundImageEnabled = Assets.Textures.UI.ToggleAllRecipesButton_Enabled.Asset.WaitForMe();
+        var backgroundImageDisabled = Assets.Textures.UI.ToggleAllRecipesButton_Disabled.Asset.WaitForMe();
         var hoverImage = Main.Assets.Request<Texture2D>("Images/UI/Bestiary/Button_Search_Border", AssetRequestMode.ImmediateLoad);
 
         toggleAllRecipesButton = new UIImageButton(showAllRecipes ? backgroundImageEnabled : backgroundImageDisabled) {

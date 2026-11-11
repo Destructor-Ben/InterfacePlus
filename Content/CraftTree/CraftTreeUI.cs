@@ -127,21 +127,23 @@ public class CraftTreeUI : UIState, ILoadable
 
     private void CreateTopBarUI()
     {
+        const float Padding = 5f;
         float left = 0;
 
-        // TODO: move these direct mutations into method calls in CraftTreeView
-        CreateButton(Assets.Textures.UI.TransformButton_ZoomIn.Asset,  () => craftTree.Scale *= CraftTreeView.ScaleSpeed);
-        CreateButton(Assets.Textures.UI.TransformButton_ZoomOut.Asset, () => craftTree.Scale /= CraftTreeView.ScaleSpeed);
+        CreateButton(Assets.Textures.UI.TransformButton_ZoomIn.Asset,  () => craftTree.HandleZoom(true));
+        CreateButton(Assets.Textures.UI.TransformButton_ZoomOut.Asset, () => craftTree.HandleZoom(false));
+        left -= Padding;
 
-        // TODO: move these direct mutations into method calls in CraftTreeView
-        // TODO: translation speed is not perfect
-        CreateButton(Assets.Textures.UI.TransformButton_MoveUp.Asset,    () => craftTree.Position.Y -= CraftTreeView.TranslateSpeed);
-        CreateButton(Assets.Textures.UI.TransformButton_MoveDown.Asset,  () => craftTree.Position.Y += CraftTreeView.TranslateSpeed);
-        CreateButton(Assets.Textures.UI.TransformButton_MoveLeft.Asset,  () => craftTree.Position.X -= CraftTreeView.TranslateSpeed);
-        CreateButton(Assets.Textures.UI.TransformButton_MoveRight.Asset, () => craftTree.Position.X += CraftTreeView.TranslateSpeed);
+        CreateButton(Assets.Textures.UI.TransformButton_MoveDown.Asset,  () => craftTree.HandleTranslate(Vector2.UnitY));
+        CreateButton(Assets.Textures.UI.TransformButton_MoveUp.Asset,    () => craftTree.HandleTranslate(-Vector2.UnitY));
+        CreateButton(Assets.Textures.UI.TransformButton_MoveRight.Asset, () => craftTree.HandleTranslate(Vector2.UnitX));
+        CreateButton(Assets.Textures.UI.TransformButton_MoveLeft.Asset,  () => craftTree.HandleTranslate(-Vector2.UnitX));
+        left -= Padding;
 
         // TODO: add 'go to root item' button
         // TODO: add 'fit whole tree' button
+        CreateButton(Assets.Textures.UI.TransformButton_ZoomOut.Asset, () => craftTree.FitTree());
+        CreateButton(Assets.Textures.UI.TransformButton_ZoomIn.Asset,  () => craftTree.ResetTransform());
 
         return;
 
@@ -163,7 +165,7 @@ public class CraftTreeUI : UIState, ILoadable
             };
 
             topBar.Append(button);
-            left -= button.Width.Pixels + 5f;
+            left -= button.Width.Pixels + Padding;
         }
     }
 
