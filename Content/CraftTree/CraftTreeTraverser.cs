@@ -9,7 +9,7 @@ public static class CraftTreeTraverser
         if (depth > MaxDepth)
             throw new Exception("Reached max depth"); // TODO: just return a node saying max depth reached instead...
 
-        var self = new CraftTreeNode(itemType, count, 1, []);
+        var self = new CraftTreeNode(itemType, count, 1, 0, []);
 
         visitedItems ??= [];
         if (visitedItems.Contains(itemType))
@@ -44,7 +44,10 @@ public static class CraftTreeTraverser
             var childNode = CreateCraftTree(ingredient.itemIdOrRecipeGroup, ingredient.stack, visitedItems, depth + 1);
             self.Children.Add(childNode);
             self.TreeWidth += childNode.TreeWidth;
+            self.TreeHeight = Math.Max(self.TreeHeight, childNode.TreeHeight);
         }
+
+        self.TreeHeight += 1;
 
         return self;
     }

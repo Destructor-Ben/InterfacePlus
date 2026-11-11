@@ -5,7 +5,7 @@ public record struct CraftTreeNode(
     int ItemType,
     int Count,
     // TODO: ]]
-    int TreeWidth, // TODO: explain this
-    // TODO: add TreeHeight
+    int TreeWidth, // Largest number of children of a single node in this subtree
+    int TreeHeight, // Depth of this subtree
     List<CraftTreeNode> Children
 );
