@@ -167,7 +167,12 @@ public class CraftTreeView : UIElement
         int maxWidth = 0;
 
         // TODO: display all possible recipes for an item
-        // TODO: also display item drop data and NPC drop data and tile drop data and where tiles spawn
+        // TODO: additional item source info:
+        // - shimmering
+        // - item loot
+        // - npc loot
+        // - chest loot
+        // - tile drops
         var recipes = Main.recipe.Where(r => r.createItem.type == itemType).ToList();
         if (recipes.Count != 0)
         {
