@@ -5,6 +5,7 @@ using Terraria.UI;
 namespace InterfacePlus.Content.CraftTree;
 
 // TODO: give this a border + proper background
+// TODO: allow exporting to a PNG
 public class CraftTreeView : UIElement
 {
     public Vector2 Position = Vector2.Zero;
@@ -94,10 +95,8 @@ public class CraftTreeView : UIElement
         // TODO: still not correct
         if (EnableCentering)
         {
-            if (node.TreeWidth % 2 == 0)
-                childPosition.X -= node.TreeWidth / 2f * IconHorizontalShift;
-            else
-                childPosition.X -= (node.TreeWidth - 1) / 2f * IconHorizontalShift;
+            if (node.TreeWidth > 1)
+                childPosition.X -= node.TreeWidth / 4f * IconHorizontalShift;
         }
 
         foreach (var child in node.Children)
@@ -221,11 +220,12 @@ public class CraftTreeView : UIElement
         var matrix = GetMatrix();
         var rasterizerState = spriteBatch.GraphicsDevice.RasterizerState;
         var scissorRectangle = spriteBatch.GraphicsDevice.ScissorRectangle;
+        var samplerState = Scale >= 1f ? SamplerState.PointClamp : SamplerState.AnisotropicClamp;
 
         spriteBatch.End();
         spriteBatch.GraphicsDevice.ScissorRectangle = GetClippingRectangle(spriteBatch);
         spriteBatch.GraphicsDevice.RasterizerState = OverflowHiddenRasterizerState;
-        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, DepthStencilState.None, OverflowHiddenRasterizerState, null, matrix);
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, samplerState, DepthStencilState.None, OverflowHiddenRasterizerState, null, matrix);
 
         base.DrawChildren(spriteBatch);
         DrawCraftTreeIcons(spriteBatch, matrix);
