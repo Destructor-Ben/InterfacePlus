@@ -13,6 +13,8 @@ public class CraftTreeUI : UIState, ILoadable
     public int RootItemType = ItemID.None;
 
     private NewCraftingUI.RecipeFilter craftingFilter;
+    private string searchFilter;
+    private int? selectedRecipe;
     private bool wasInGuideCraftMenu;
     private int talkNpc;
 
@@ -39,6 +41,8 @@ public class CraftTreeUI : UIState, ILoadable
     public static void OpenForItem(int itemType, bool quiet = false)
     {
         Instance.craftingFilter = NewCraftingUI._instance._filter;
+        Instance.searchFilter = NewCraftingUI._instance._searchBar._searchString;
+        Instance.selectedRecipe = NewCraftingUI._instance._selectedRecipeIndex;
         Instance.wasInGuideCraftMenu = Main.InGuideCraftMenu;
         Instance.talkNpc = Main.LocalPlayer.talkNPC;
 
@@ -104,7 +108,6 @@ public class CraftTreeUI : UIState, ILoadable
         rootPanel.Append(craftTree);
     }
 
-    // TODO: restore the search text
     private void GoBack()
     {
         IngameFancyUI.Close();
@@ -125,9 +128,13 @@ public class CraftTreeUI : UIState, ILoadable
         {
             Player.OpenInventory(quiet: true);
             NewCraftingUI.Open(quiet: true, craftingFilter);
+            NewCraftingUI._instance._searchBar.SetContents(searchFilter);
+            NewCraftingUI._instance._selectedRecipeIndex = selectedRecipe;
         }
 
         craftingFilter = null;
+        searchFilter = "";
+        selectedRecipe = null;
         wasInGuideCraftMenu = false;
         talkNpc = -1;
     }
