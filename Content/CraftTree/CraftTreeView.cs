@@ -3,6 +3,7 @@ using Terraria.UI;
 namespace InterfacePlus.Content.CraftTree;
 
 // TODO: copy the camera control UI from the unfinished incremental mod
+// TODO: give this a border
 public class CraftTreeView : UIElement
 {
     private static int IconVerticalShift => 100;

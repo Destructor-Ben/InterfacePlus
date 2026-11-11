@@ -23,6 +23,10 @@ public class CraftTreeUI : UIState, ILoadable
     private UITextPanel<object> headerPanel;
     private UITextPanel<object> backButton;
     private CraftTreeView craftTree;
+    private UIElement topBar;
+
+    private Asset<Texture2D> craftIcon;
+    private Asset<Texture2D> stationsIcon;
 
     public void Load(Mod mod)
     {
@@ -33,6 +37,9 @@ public class CraftTreeUI : UIState, ILoadable
 
     public override void OnActivate()
     {
+        craftIcon = Main.Assets.Request<Texture2D>("Images/UI/Craft");
+        stationsIcon = ModInstance.Assets.Request<Texture2D>("Assets/Textures/UI/CraftingStations");
+
         RemoveAllChildren();
         CreateUI();
         SetRootItem(RootItemType);
@@ -61,7 +68,6 @@ public class CraftTreeUI : UIState, ILoadable
             craftTree.SetItem(RootItemType);
     }
 
-    // TODO: Make a crafting indicator like the one used in NewCraftingUI showing the ingredients and result and crafting bench
     private void CreateUI()
     {
         rootElement = new UIElement
@@ -100,10 +106,18 @@ public class CraftTreeUI : UIState, ILoadable
         backButton.OnLeftClick += (_, _) => GoBack();
         rootElement.Append(backButton);
 
+        topBar = new UIElement
+        {
+            Width = { Percent = 1f },
+            Height = { Pixels = TextureAssets.InventoryBack.Height() },
+        };
+        rootPanel.Append(topBar);
+
         craftTree = new CraftTreeView
         {
             Width = { Percent = 1f },
-            Height = { Percent = 1f },
+            Height = { Percent = 1f, Pixels = -(topBar.Height.Pixels + rootPanel.PaddingTop) },
+            VAlign = 1f,
         };
         rootPanel.Append(craftTree);
     }
@@ -137,5 +151,159 @@ public class CraftTreeUI : UIState, ILoadable
         selectedRecipe = null;
         wasInGuideCraftMenu = false;
         talkNpc = -1;
+    }
+
+    protected override void DrawChildren(SpriteBatch spriteBatch)
+    {
+        base.DrawChildren(spriteBatch);
+        DrawRecipe(spriteBatch);
+    }
+
+    // Modified from NewCraftingUI.DrawChildren()
+    // TODO: i think the mouse layer doesn't draw?
+    private void DrawRecipe(SpriteBatch spriteBatch)
+    {
+        if (RootItemType == ItemID.None)
+            return;
+
+        // TODO: temp
+        spriteBatch.Draw(TextureAssets.MagicPixel.Value, topBar.GetDimensions().ToRectangle(), null, Color.Red);
+
+        // TODO: how to handle multiple recipes?
+        var recipe = Main.recipe.FirstOrDefault(r => r.createItem.type == RootItemType);
+        if (recipe == null)
+            return;
+
+        // Craft slot
+        var pos = topBar.GetInnerDimensions().Position();
+        if (DrawRecipeSlot(spriteBatch, recipe.createItem, pos, ItemSlot.Context.NewCraftingUICraftSlot, out var bounds))
+            ItemSlot.MouseHover(recipe.createItem, ItemSlot.Context.NewCraftingUICraftSlot);
+
+        pos.X += bounds.Width;
+
+        // Craft icon
+        spriteBatch.Draw(
+            craftIcon.Value,
+            pos + bounds.Size() / 2f,
+            null,
+            Color.White,
+            0f,
+            craftIcon.Size() / 2f,
+            1f,
+            SpriteEffects.None,
+            0f
+        );
+
+        pos.X += bounds.Width;
+
+        // Ingredients
+        int ingredientCount = recipe.requiredItem.Count;
+        float ingredientScale = Math.Min(11f / (float)ingredientCount, 1f);
+        for (int j = 0; j < ingredientCount; j++)
+        {
+            Item item = recipe.requiredItem[j];
+            UILinkPointNavigator.Shortcuts.NewCraftingUI_MaterialIndex = j;
+            if (DrawRecipeSlot(spriteBatch, item, pos, ItemSlot.Context.NewCraftingUIMaterial, out var _, 1f * ingredientScale))
+            {
+                // TODO:
+                ItemSlot.MouseHover(item, ItemSlot.Context.NewCraftingUIMaterial);
+                // CraftingUI.SetRecipeMaterialDisplayName(recipe, item);
+            }
+
+            pos.X += bounds.Width * ingredientScale;
+        }
+
+        // Stations icon
+        // TODO: run the code below this first (and add the data to a list) then check if the list is empty, and if it isn't, then draw the icons
+        if (recipe.requiredTile < 0
+            && !recipe.needWater
+            && !recipe.needHoney
+            && !recipe.needLava
+            && !recipe.needSnowBiome
+            && !recipe.needGraveyardBiome
+            && !recipe.needTorchGodsFavor
+            && !recipe.needMechdusa)
+            return;
+
+        spriteBatch.Draw(
+            stationsIcon.Value,
+            pos + bounds.Size() / 2f,
+            null,
+            Color.White,
+            0f,
+            stationsIcon.Size() / 2f,
+            1f,
+            SpriteEffects.None,
+            0f
+        );
+
+        pos.X += bounds.Width;
+
+        // Crafting stations
+        if (recipe.requiredTile >= 0) {
+            DrawIngredientSlot(spriteBatch, ItemID.None, ref pos);
+            // TODO: use fake Air item, just draw the crafting station in the slot
+        }
+
+        if (recipe.needWater)
+            DrawIngredientSlot(spriteBatch, ItemID.WaterBucket, ref pos);
+
+        if (recipe.needHoney)
+            DrawIngredientSlot(spriteBatch, ItemID.HoneyBucket, ref pos);
+
+        if (recipe.needLava)
+            DrawIngredientSlot(spriteBatch, ItemID.LavaBucket, ref pos);
+
+        if (recipe.needSnowBiome)
+            DrawIngredientSlot(spriteBatch, ItemID.SnowBlock, ref pos);
+
+        if (recipe.needGraveyardBiome)
+            DrawIngredientSlot(spriteBatch, ItemID.Tombstone, ref pos);
+
+        if (recipe.needTorchGodsFavor)
+            DrawIngredientSlot(spriteBatch, ItemID.TorchGodsFavor, ref pos);
+
+        if (recipe.needMechdusa)
+            DrawIngredientSlot(spriteBatch, ItemID.MechdusaSummon, ref pos);
+
+        // TODO: handle other conditions that mods can add
+    }
+
+    private static void DrawIngredientSlot(SpriteBatch spriteBatch, int itemType, ref Vector2 pos)
+    {
+        var item = new Item(itemType);
+        DrawIngredientSlot(spriteBatch, item, ref pos);
+    }
+
+    private static void DrawIngredientSlot(SpriteBatch spriteBatch, Item item, ref Vector2 pos)
+    {
+        if (DrawRecipeSlot(spriteBatch, item, pos, ItemSlot.Context.NewCraftingUIMaterial, out var bounds))
+            ItemSlot.MouseHover(item, ItemSlot.Context.NewCraftingUIMaterial);
+
+        pos.X += bounds.Width;
+    }
+
+    // TODO: see if all the contexts are good and if any of them should change
+    // Returns true if the mouse is hovering
+    private static bool DrawRecipeSlot(SpriteBatch spriteBatch, Item item, Vector2 pos, int context, out Rectangle bounds, float scale = 1f)
+    {
+        var inventoryBack = Main.inventoryBack;
+        Main.inventoryBack = Color.White * 0.7490196f;
+        float inventoryScale = Main.inventoryScale;
+        Main.inventoryScale = scale;
+
+        ItemSlot.Draw(spriteBatch, ref item, context, pos, Color.White);
+
+        Main.inventoryScale = inventoryScale;
+        Main.inventoryBack = inventoryBack;
+
+        bounds = new Rectangle(
+            (int)pos.X,
+            (int)pos.Y,
+            (int)((float)TextureAssets.InventoryBack.Width() * scale),
+            (int)((float)TextureAssets.InventoryBack.Height() * scale)
+        );
+
+        return bounds.Contains(Main.MouseScreen.ToPoint());
     }
 }

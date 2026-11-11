@@ -38,15 +38,13 @@ public static class CraftTreeTraverser
         foreach (var ingredient in recipe.requiredItemQuickLookup)
         {
             // TODO: temporary:
-            if (ingredient.itemIdOrRecipeGroup >= RecipeGroup.FakeItemIdOffset)
+            if (ingredient.IsRecipeGroup)
                 continue;
 
             var childNode = CreateCraftTree(ingredient.itemIdOrRecipeGroup, ingredient.stack, visitedItems, depth + 1);
             self.Children.Add(childNode);
             self.TreeWidth += childNode.TreeWidth;
         }
-
-        ModLogger.Info($"Item: {self.ItemType}, TreeWidth: {self.TreeWidth}");
 
         return self;
     }
