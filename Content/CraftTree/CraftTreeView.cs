@@ -4,7 +4,6 @@ using Terraria.UI;
 
 namespace InterfacePlus.Content.CraftTree;
 
-// TODO: copy the camera control UI from the unfinished incremental mod
 // TODO: give this a border + proper background
 public class CraftTreeView : UIElement
 {
@@ -36,6 +35,8 @@ public class CraftTreeView : UIElement
         isMouseDragging = false;
         ResetTransform();
     }
+
+    #region Button Actions
 
     public void HandleZoom(bool zoomIn)
     {
@@ -70,6 +71,10 @@ public class CraftTreeView : UIElement
         Scale = Math.Min(scaleX, scaleY);
     }
 
+    #endregion
+
+    #region Craft Tree Icon Creation
+
     public void SetItem(int itemType)
     {
         var dimensions = GetDimensions();
@@ -101,6 +106,10 @@ public class CraftTreeView : UIElement
             childPosition.X += IconHorizontalShift * child.TreeWidth;
         }
     }
+
+    #endregion
+
+    #region Rendering
 
     private void DrawCraftTreeIcons(SpriteBatch spriteBatch, Matrix transform)
     {
@@ -226,6 +235,8 @@ public class CraftTreeView : UIElement
         spriteBatch.GraphicsDevice.RasterizerState = rasterizerState;
         spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, DepthStencilState.None, rasterizerState, null, Main.UIScaleMatrix);
     }
+
+    #endregion
 
     #region Input
 
