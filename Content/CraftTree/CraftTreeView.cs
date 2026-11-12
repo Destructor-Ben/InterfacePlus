@@ -1,5 +1,4 @@
 using InterfacePlus.Utilities;
-using Terraria.ModLoader.UI;
 using Terraria.UI;
 
 namespace InterfacePlus.Content.CraftTree;
@@ -86,7 +85,7 @@ public class CraftTreeView : UIElement
 
     private CraftTreeIcon AddCraftTreeIcon(CraftTreeNode node, Vector2 position, CraftTreeIcon parent = null)
     {
-        var icon = new CraftTreeIcon(position, parent, [], node.ItemType, new Item(node.ItemType));
+        var icon = new CraftTreeIcon(position, parent, [], new Item(node.ItemType));
         treeIcons.Add(icon);
 
         var childPosition = position + Vector2.UnitY * IconVerticalShift;
@@ -153,25 +152,29 @@ public class CraftTreeView : UIElement
         Main.HoverItem = icon.DrawnItem;
     }
 
-    // TODO: fix aliasing (i think thats the right word?) when the scale isn't 1f
-    private static void DrawConnectionLine(SpriteBatch spriteBatch, Vector2 start, float offset, bool isVertical)
+    // TODO: aliasing still present
+    private void DrawConnectionLine(SpriteBatch spriteBatch, Vector2 start, float offset, bool isVertical)
     {
-        const float ConnectionLineWidth = 2;
+        float connectionLineWidth = MathF.Max(2 / Scale, 2); // Ensure constant width if zoomed out
         var connectionLineColor = new Color(98, 105, 152);
 
-        start.X -= ConnectionLineWidth / 2;
+        start.X -= connectionLineWidth / 2f;
         var end = start;
 
         if (isVertical)
         {
-            end.X += ConnectionLineWidth;
+            end.X += connectionLineWidth;
             end.Y += offset;
         }
         else
         {
             end.X += offset;
-            end.Y += ConnectionLineWidth;
+            end.Y += connectionLineWidth;
         }
+
+        // Helps with aliasing issues
+        start = Utils.Round(start);
+        end = Utils.Round(end);
 
         var targetRectangle = Utils.CornerRectangle(start, end);
 

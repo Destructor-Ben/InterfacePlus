@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using InterfacePlus.Utilities;
 using Terraria.GameContent.UI;
 using Terraria.GameContent.UI.Elements;
@@ -10,6 +9,7 @@ using Vector2 = Microsoft.Xna.Framework.Vector2;
 namespace InterfacePlus.Content.CraftTree;
 
 // TODO: fix first opening being weirdly offset
+// - probably because topbar height is set based on a texture that doesn't load immediately
 public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 {
     public static CraftTreeUI Instance { get; private set; }
