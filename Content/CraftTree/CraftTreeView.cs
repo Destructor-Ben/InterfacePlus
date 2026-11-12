@@ -158,6 +158,7 @@ public class CraftTreeView : UIElement
         }
         */
 
+        // TODO: call into my (to be made) custom itemslot drawing code
         Utils.DrawSplicedPanel(
             spriteBatch,
             IconPanelTexture.Value,

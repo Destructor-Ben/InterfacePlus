@@ -1,5 +1,3 @@
-using System.Numerics;
-using InterfacePlus.Core;
 using InterfacePlus.Utilities;
 using Terraria.GameContent.UI;
 using Terraria.GameContent.UI.Elements;
@@ -11,11 +9,13 @@ using Vector2 = Microsoft.Xna.Framework.Vector2;
 namespace InterfacePlus.Content.CraftTree;
 
 // TODO: fix first opening being weirdly offset
-public class CraftTreeUI : UIState, ILoadable
+public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 {
     public static CraftTreeUI Instance { get; private set; }
 
     public int RootItemType = ItemID.None;
+
+    public UIState PreviousUIState { get; set; } // Unused
 
     private NewCraftingUI.RecipeFilter craftingFilter;
     private string searchFilter;
@@ -192,6 +192,11 @@ public class CraftTreeUI : UIState, ILoadable
         }
     }
 
+    public void HandleBackButtonUsage()
+    {
+        GoBack();
+    }
+
     private void GoBack()
     {
         IngameFancyUI.Close();
@@ -363,8 +368,8 @@ public class CraftTreeUI : UIState, ILoadable
         bounds = new Rectangle(
             (int)pos.X,
             (int)pos.Y,
-            (int)((float)TextureAssets.InventoryBack.Width() * scale),
-            (int)((float)TextureAssets.InventoryBack.Height() * scale)
+            (int)(TextureAssets.InventoryBack.Width() * scale),
+            (int)(TextureAssets.InventoryBack.Height() * scale)
         );
 
         bool isMouseHovering = bounds.Contains(Main.MouseScreen.ToPoint());
