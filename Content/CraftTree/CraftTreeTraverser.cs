@@ -1,50 +1,69 @@
+using InterfacePlus.Content.CraftTree.Sources;
+
 namespace InterfacePlus.Content.CraftTree;
 
 public static class CraftTreeTraverser
 {
     private static int MaxDepth => 100;
 
-    public static CraftTreeNode CreateCraftTree(int itemType, int count = 1, List<int> visitedItems = null, int depth = 0)
+    // TODO: add additional sources:
+    // - shimmering
+    // - item loot
+    // - npc loot
+    // - npc shops
+    // - chest loot
+    public static IEnumerable<INodeSource> GetSourcesForItem(int itemType, int stack)
+    {
+        List<INodeSource> sources = [];
+
+        sources.AddRange(Main.recipe.Where(r => r.createItem.type == itemType).Select(r => new RecipeSource(r)));
+
+        if (sources.Count != 0)
+            return sources;
+
+        return [new DeadEndSource(itemType, stack)];
+    }
+
+    // TODO: display all possible recipes for an item? or allow selecting the recipe? or combine the recipes?
+    public static CraftTreeNode CreateCraftTree(int itemType, int stack = 1)
+    {
+        var sources = GetSourcesForItem(itemType, stack).ToArray();
+        return sources.Length <= 0 ? null : CreateCraftTree(sources[0]);
+    }
+
+    // TODO: change the list to a hashset
+    public static CraftTreeNode CreateCraftTree(INodeSource source, List<INodeSource> visitedSources = null, int depth = 0)
     {
         if (depth > MaxDepth)
             throw new Exception("Reached max depth"); // TODO: just return a node saying max depth reached instead...
 
-        var self = new CraftTreeNode(itemType, count, 1, 0, []);
+        var self = new CraftTreeNode(source, [])
+        {
+            TreeWidth = 1,
+            TreeHeight = 1,
+        };
 
-        visitedItems ??= [];
-        if (visitedItems.Contains(itemType))
-            return self; // TODO: should probably fade duplicated items
+        visitedSources ??= [];
+        // TODO: does this work with the sources?
+        if (visitedSources.Contains(source))
+            return self; // TODO: should probably fade duplicated sources
 
-        visitedItems.Add(itemType);
+        visitedSources.Add(source);
 
-        // TODO: perhaps refactor this into a CraftTreeTraverser.GetItemSources() and an ItemSource struct, and use ItemSource in the CraftTreeNode
-        // TODO: display all possible recipes for an item
-        // TODO: additional item source info:
-        // - shimmering
-        // - item loot
-        // - npc loot
-        // - chest loot
-        // - tile drops
         // TODO: how to handle crafting stations?
         // TODO: configure options to expand things:
         // - stupid loopds like walls
-        var recipes = Main.recipe.Where(r => r.createItem.type == itemType).ToList();
-        if (recipes.Count <= 0)
+        var childSources = source.GetChildren().ToArray();
+        if (childSources.Length <= 0)
             return self;
 
         // We have child nodes, so traverse them and add to children, then update the max width
-
-        // TODO: handle recipe groups
-        var recipe = recipes[0]; // TODO: handle multiple recipes
         self.TreeWidth = 0;
+        self.TreeHeight = 0;
 
-        foreach (var ingredient in recipe.requiredItemQuickLookup)
+        foreach (var child in childSources)
         {
-            // TODO: temporary:
-            if (ingredient.IsRecipeGroup)
-                continue;
-
-            var childNode = CreateCraftTree(ingredient.itemIdOrRecipeGroup, ingredient.stack, visitedItems, depth + 1);
+            var childNode = CreateCraftTree(child, visitedSources, depth + 1);
             self.Children.Add(childNode);
             self.TreeWidth += childNode.TreeWidth;
             self.TreeHeight = Math.Max(self.TreeHeight, childNode.TreeHeight);

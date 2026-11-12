@@ -51,6 +51,7 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
         SetRootItem(RootItemType);
     }
 
+    // TODO: allow setting the selected recipe
     public void SetRootItem(int itemType)
     {
         RootItemType = itemType;

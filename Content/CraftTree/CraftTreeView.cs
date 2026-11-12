@@ -10,7 +10,7 @@ public class CraftTreeView : UIElement
 {
     public Vector2 Position = Vector2.Zero;
     public float Scale = 1f;
-    public CraftTreeNode? CraftTree { get; private set; }
+    public CraftTreeNode CraftTree { get; private set; }
 
     private static float TranslateSpeed => 3f;
     private static float ScaleSpeed => 1.02f;
@@ -30,6 +30,7 @@ public class CraftTreeView : UIElement
     public void SetItem(int itemType)
     {
         Reset();
+        // TODO: correctly specify stack (probably based recipe)
         CraftTree = CraftTreeTraverser.CreateCraftTree(itemType);
     }
 
@@ -97,12 +98,12 @@ public class CraftTreeView : UIElement
 
         var dimensions = GetDimensions();
         var initialPos = Vector2.UnitY * (-dimensions.Height / 2 + IconVerticalShift);
-        AddCraftTreeIcon(CraftTree.Value, initialPos);
+        AddCraftTreeIcon(CraftTree, initialPos);
     }
 
     private CraftTreeIcon AddCraftTreeIcon(CraftTreeNode node, Vector2 position, CraftTreeIcon parent = null)
     {
-        var icon = new CraftTreeIcon(position, parent, [], new Item(node.ItemType));
+        var icon = new CraftTreeIcon(node, position, parent, []);
         treeIcons.Add(icon);
 
         var childPosition = position + Vector2.UnitY * IconVerticalShift;
@@ -155,7 +156,8 @@ public class CraftTreeView : UIElement
             DrawConnectionLine(spriteBatch, firstChild.Position - Vector2.UnitY * connectionlineHeight, lastChild.Position.X - firstChild.Position.X, false);
         }
 
-        var bounds = ItemSlotUtils.DrawCraftTreeSlot(spriteBatch, icon.DrawnItem, icon.Position - ItemSlotUtils.PanelTexture.Size() / 2f);
+        var drawnItem = icon.Node.Source.DrawnItem;
+        var bounds = ItemSlotUtils.DrawCraftTreeSlot(spriteBatch, drawnItem, icon.Position - ItemSlotUtils.PanelTexture.Size() / 2f);
 
         var transformedBounds = bounds.Transform(transform);
         bool isMouseHovering = IsMouseHovering && transformedBounds.Contains(Main.MouseScreen.ToPoint());
@@ -166,7 +168,7 @@ public class CraftTreeView : UIElement
         // TODO: add more info to the tooltip
         // - Probably crafting station + crafting conditions
         Main.instance.MouseText("");
-        Main.HoverItem = icon.DrawnItem;
+        Main.HoverItem = drawnItem;
     }
 
     // TODO: aliasing still present - Fix by drawing lines in a pass before the icons without my custom UI matrix applied so the scaling isn't fucked
