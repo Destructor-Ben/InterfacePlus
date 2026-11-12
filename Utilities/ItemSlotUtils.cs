@@ -4,7 +4,7 @@ namespace InterfacePlus.Utilities;
 
 public static class ItemSlotUtils
 {
-    public static readonly Asset<Texture2D> PanelTexture = Assets.Textures.UI.CraftTreePanel.Asset;
+    public static Asset<Texture2D> PanelTexture => Assets.Textures.UI.CraftTreePanel.Asset;
 
     public static Rectangle DrawCraftTreeSlot(SpriteBatch spriteBatch, Item item, Vector2 pos)
     {

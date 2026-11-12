@@ -8,13 +8,11 @@ using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace InterfacePlus.Content.CraftTree;
 
-// TODO: fix first opening being weirdly offset
-// - probably because topbar height is set based on a texture that doesn't load immediately
 public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 {
     public static CraftTreeUI Instance { get; private set; }
 
-    public int RootItemType = ItemID.None;
+    public int RootItemType { get; private set; } = ItemID.None;
 
     public UIState PreviousUIState { get; set; } // Unused
 
@@ -53,6 +51,16 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
         SetRootItem(RootItemType);
     }
 
+    public void SetRootItem(int itemType)
+    {
+        RootItemType = itemType;
+
+        Recalculate();
+
+        if (RootItemType != ItemID.None && craftTree is not null)
+            craftTree.SetItem(RootItemType);
+    }
+
     public static void OpenForItem(int itemType, bool quiet = false)
     {
         Instance.craftingFilter = NewCraftingUI._instance._filter;
@@ -61,19 +69,11 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
         Instance.wasInGuideCraftMenu = Main.InGuideCraftMenu;
         Instance.talkNpc = Main.LocalPlayer.talkNPC;
 
-        Instance.SetRootItem(itemType);
+        Instance.RootItemType = itemType;
         IngameFancyUI.OpenUIState(Instance);
 
         if (!quiet)
             SoundEngine.PlaySound(SoundID.MenuOpen);
-    }
-
-    public void SetRootItem(int itemType)
-    {
-        RootItemType = itemType;
-
-        if (RootItemType != ItemID.None && craftTree is not null)
-            craftTree.SetItem(RootItemType);
     }
 
     private void CreateUI()
@@ -117,7 +117,7 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
         topBar = new UIElement
         {
             Width = { Percent = 1f },
-            Height = { Pixels = ItemSlotUtils.PanelTexture.Height() },
+            Height = { Pixels = ItemSlotUtils.PanelTexture.WaitForMe().Height() },
         };
         rootPanel.Append(topBar);
 
@@ -135,6 +135,9 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
     private void CreateTopBarUI()
     {
         float left = 0;
+
+        var hoverImage = Assets.Textures.UI.TransformButton_Hover.Asset.WaitForMe();
+        topBar.PaddingRight = (topBar.Height.Pixels - hoverImage.Height()) / 2f;
 
         CreateButton(Assets.Textures.UI.TransformButton_ZoomIn.Asset,  () => craftTree.HandleZoom(true));
         CreateButton(Assets.Textures.UI.TransformButton_ZoomOut.Asset, () => craftTree.HandleZoom(false));
@@ -161,7 +164,7 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
             };
 
             button.SetVisibility(1f, 1f);
-            button.SetHoverImage(Assets.Textures.UI.TransformButton_Hover.Asset.WaitForMe());
+            button.SetHoverImage(hoverImage);
 
             if (tooltip is not null)
             {
@@ -299,10 +302,18 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 
         pos.X += stationsIcon.Width() + Padding;
 
-        // Crafting stations
+        // Crafting station
         if (recipe.requiredTile >= 0) {
             DrawSlot(spriteBatch, ItemID.None, ref pos);
             // TODO: use fake Air item, just draw the crafting station in the slot
+        }
+
+        if (recipe.Conditions.Count != 0)
+        {
+            foreach (var condition in recipe.Conditions)
+            {
+                ModLogger.Info($"NEEDs {condition.Description}");
+            }
         }
 
         if (recipe.needWater)

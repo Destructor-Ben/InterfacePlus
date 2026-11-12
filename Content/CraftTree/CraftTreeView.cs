@@ -27,12 +27,28 @@ public class CraftTreeView : UIElement
         OverflowHidden = true;
     }
 
+    public void SetItem(int itemType)
+    {
+        Reset();
+        CraftTree = CraftTreeTraverser.CreateCraftTree(itemType);
+    }
+
     public void Reset()
     {
-        treeIcons.Clear();
         CraftTree = null;
+        Recalculate();
+    }
+
+    public override void Recalculate()
+    {
+        treeIcons.Clear();
         isMouseDragging = false;
         ResetTransform();
+
+        base.Recalculate();
+
+        // Done in recalculate because GetDimensions() is wrong in SetItem
+        AddCraftTreeIcons();
     }
 
     #region Button Actions
@@ -74,12 +90,13 @@ public class CraftTreeView : UIElement
 
     #region Craft Tree Icon Creation
 
-    public void SetItem(int itemType)
+    private void AddCraftTreeIcons()
     {
+        if (CraftTree is null)
+            return;
+
         var dimensions = GetDimensions();
         var initialPos = Vector2.UnitY * (-dimensions.Height / 2 + IconVerticalShift);
-
-        CraftTree = CraftTreeTraverser.CreateCraftTree(itemType);
         AddCraftTreeIcon(CraftTree.Value, initialPos);
     }
 
@@ -152,7 +169,7 @@ public class CraftTreeView : UIElement
         Main.HoverItem = icon.DrawnItem;
     }
 
-    // TODO: aliasing still present
+    // TODO: aliasing still present - Fix by drawing lines in a pass before the icons without my custom UI matrix applied so the scaling isn't fucked
     private void DrawConnectionLine(SpriteBatch spriteBatch, Vector2 start, float offset, bool isVertical)
     {
         float connectionLineWidth = MathF.Max(2 / Scale, 2); // Ensure constant width if zoomed out
