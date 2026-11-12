@@ -86,9 +86,9 @@ public class CraftTreeView : UIElement
         AddCraftTreeIcon(CraftTree.Value, initialPos);
     }
 
-    private void AddCraftTreeIcon(CraftTreeNode node, Vector2 position, CraftTreeIcon parent = null)
+    private CraftTreeIcon AddCraftTreeIcon(CraftTreeNode node, Vector2 position, CraftTreeIcon parent = null)
     {
-        var icon = new CraftTreeIcon(position, node.ItemType);
+        var icon = new CraftTreeIcon(position, node.ItemType, parent, []);
         treeIcons.Add(icon);
 
         var childPosition = position + Vector2.UnitY * IconVerticalShift;
@@ -100,11 +100,14 @@ public class CraftTreeView : UIElement
                 childPosition.X -= node.TreeWidth / 4f * IconHorizontalShift;
         }
 
-        foreach (var child in node.Children)
+        foreach (var childNode in node.Children)
         {
-            AddCraftTreeIcon(child, childPosition, icon);
-            childPosition.X += IconHorizontalShift * child.TreeWidth;
+            var childIcon = AddCraftTreeIcon(childNode, childPosition, icon);
+            childPosition.X += IconHorizontalShift * childNode.TreeWidth;
+            icon.Children.Add(childIcon);
         }
+
+        return icon;
     }
 
     #endregion
@@ -122,8 +125,7 @@ public class CraftTreeView : UIElement
     private void DrawCraftTreeIcon(SpriteBatch spriteBatch, Matrix transform, CraftTreeIcon icon)
     {
         const int CornerSize = 10;
-        const int ConnectionLineWidth = 2;
-        Color connectionLineColor = new(98, 105, 152);
+        float connectionlineHeight = IconVerticalShift / 2f;
 
         var bounds = new Rectangle(
             (int)icon.Position.X - IconPanelTexture.Width() / 2,
@@ -135,28 +137,20 @@ public class CraftTreeView : UIElement
         var transformedBounds = bounds.Transform(transform);
         bool isMouseHovering = IsMouseHovering && transformedBounds.Contains(Main.MouseScreen.ToPoint());
 
-        // TODO: these lines should be like in HOI4 focus tree
-        /* TODO: fix, probably make parent draw all of the connections
-        if (ParentIcon is not null)
+        // Draw line up if have parent
+        if (icon.Parent is not null)
+            DrawConnectionLine(spriteBatch, icon.Position, -connectionlineHeight, true);
+
+        // Parent icons draw the horizontal line connecting all the children and the vertical line connecting parent to the horizontal line
+        if (icon.Children.Count > 0)
+            DrawConnectionLine(spriteBatch, icon.Position, connectionlineHeight, true);
+
+        if (icon.Children.Count > 1)
         {
-            // TODO: fix this
-            int heightDifference = (int)ParentIcon.GetDimensions().Y - (int)dimensions.Y;
-
-            var targetRectangle = new Rectangle(
-                (int)dimensions.X - ConnectionLineWidth / 2,
-                (int)dimensions.Y + heightDifference / 8,
-                ConnectionLineWidth,
-                heightDifference / 2
-            );
-
-            spriteBatch.Draw(
-                TextureAssets.MagicPixel.Value,
-                targetRectangle,
-                null,
-                ConnectionLineColor
-            );
+            var firstChild = icon.Children[0];
+            var lastChild = icon.Children[^1];
+            DrawConnectionLine(spriteBatch, firstChild.Position - Vector2.UnitY * connectionlineHeight, lastChild.Position.X - firstChild.Position.X, false);
         }
-        */
 
         // TODO: call into my (to be made) custom itemslot drawing code
         Utils.DrawSplicedPanel(
@@ -198,6 +192,35 @@ public class CraftTreeView : UIElement
         // TODO: add more info to the tooltip
         if (isMouseHovering)
             UICommon.TooltipMouseText(Lang._itemNameCache[icon.ItemType].Value);
+    }
+
+    private static void DrawConnectionLine(SpriteBatch spriteBatch, Vector2 start, float offset, bool isVertical)
+    {
+        const float ConnectionLineWidth = 2;
+        var connectionLineColor = new Color(98, 105, 152);
+
+        start.X -= ConnectionLineWidth / 2;
+        var end = start;
+
+        if (isVertical)
+        {
+            end.X += ConnectionLineWidth;
+            end.Y += offset;
+        }
+        else
+        {
+            end.X += offset;
+            end.Y += ConnectionLineWidth;
+        }
+
+        var targetRectangle = Utils.CornerRectangle(start, end);
+
+        spriteBatch.Draw(
+            TextureAssets.MagicPixel.Value,
+            targetRectangle,
+            null,
+            connectionLineColor
+        );
     }
 
     private Matrix GetMatrix()
