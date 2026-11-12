@@ -7,7 +7,6 @@ public static class CraftTreeTraverser
     private static int MaxDepth => 100;
 
     // TODO: add additional sources:
-    // - shimmering
     // - item loot
     // - npc loot
     // - npc shops
@@ -18,10 +17,13 @@ public static class CraftTreeTraverser
 
         sources.AddRange(Main.recipe.Where(r => r.createItem.type == itemType).Select(r => new RecipeSource(r)));
 
-        if (sources.Count != 0)
-            return sources;
+        // ItemID.Sets.ShimmerXX
+        // TODO: npcs (vanilla only has duplicates of the critter shimmerings)
+        // NPCID.Sets.ShimmerXX
+        // TODO: ItemId.Sets.SHimmerCountsAs
+        sources.AddRange(ItemID.Sets.ShimmerTransformToItem.Where((input, output) => output == itemType).Select(i => new ItemSource(i, stack)));
 
-        return [new DeadEndSource(itemType, stack)];
+        return sources;
     }
 
     // TODO: display all possible recipes for an item? or allow selecting the recipe? or combine the recipes?
