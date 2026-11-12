@@ -51,7 +51,6 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
         SetRootItem(RootItemType);
     }
 
-    // TODO: allow setting the selected recipe
     public void SetRootItem(int itemType)
     {
         RootItemType = itemType;
@@ -279,6 +278,7 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 
         // Stations icon
         // TODO: run the code below this first (and add the data to a list) then check if the list is empty, and if it isn't, then draw the icons
+        // TODO: how to handle crafting stations that act as other crafting stations?
         if (recipe.requiredTile < 0
             && !recipe.needWater
             && !recipe.needHoney
