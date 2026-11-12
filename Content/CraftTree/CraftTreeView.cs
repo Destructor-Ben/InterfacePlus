@@ -20,8 +20,6 @@ public class CraftTreeView : UIElement
     private static int IconHorizontalShift => 75;
     private static bool EnableCentering => true;
 
-    private static readonly Asset<Texture2D> IconPanelTexture = Assets.Textures.UI.CraftTreePanel.Asset;
-
     private readonly List<CraftTreeIcon> treeIcons = [];
     private bool isMouseDragging = false;
 
@@ -63,7 +61,7 @@ public class CraftTreeView : UIElement
     {
         var positions = treeIcons.Select(icon => icon.Position).ToArray();
         var treeHitbox = Utils.BoundingRectangle(positions);
-        treeHitbox.Inflate(IconPanelTexture.Width(), IconPanelTexture.Height());
+        treeHitbox.Inflate(ItemSlotUtils.PanelTexture.Width(), ItemSlotUtils.PanelTexture.Height());
 
         var dims = GetDimensions();
         float scaleX = dims.Width / treeHitbox.Width;
@@ -88,7 +86,7 @@ public class CraftTreeView : UIElement
 
     private CraftTreeIcon AddCraftTreeIcon(CraftTreeNode node, Vector2 position, CraftTreeIcon parent = null)
     {
-        var icon = new CraftTreeIcon(position, node.ItemType, parent, []);
+        var icon = new CraftTreeIcon(position, parent, [], node.ItemType, new Item(node.ItemType));
         treeIcons.Add(icon);
 
         var childPosition = position + Vector2.UnitY * IconVerticalShift;
@@ -124,18 +122,7 @@ public class CraftTreeView : UIElement
 
     private void DrawCraftTreeIcon(SpriteBatch spriteBatch, Matrix transform, CraftTreeIcon icon)
     {
-        const int CornerSize = 10;
         float connectionlineHeight = IconVerticalShift / 2f;
-
-        var bounds = new Rectangle(
-            (int)icon.Position.X - IconPanelTexture.Width() / 2,
-            (int)icon.Position.Y - IconPanelTexture.Height() / 2,
-            IconPanelTexture.Width(),
-            IconPanelTexture.Height()
-        );
-
-        var transformedBounds = bounds.Transform(transform);
-        bool isMouseHovering = IsMouseHovering && transformedBounds.Contains(Main.MouseScreen.ToPoint());
 
         // Draw line up if have parent
         if (icon.Parent is not null)
@@ -152,48 +139,21 @@ public class CraftTreeView : UIElement
             DrawConnectionLine(spriteBatch, firstChild.Position - Vector2.UnitY * connectionlineHeight, lastChild.Position.X - firstChild.Position.X, false);
         }
 
-        // TODO: call into my (to be made) custom itemslot drawing code
-        Utils.DrawSplicedPanel(
-            spriteBatch,
-            IconPanelTexture.Value,
-            bounds.X,
-            bounds.Y,
-            bounds.Width,
-            bounds.Height,
-            CornerSize,
-            CornerSize,
-            CornerSize,
-            CornerSize,
-            Color.White
-        );
+        var bounds = ItemSlotUtils.DrawCraftTreeSlot(spriteBatch, icon.DrawnItem, icon.Position - ItemSlotUtils.PanelTexture.Size() / 2f);
 
-        // TODO: draw item stack text
-        // TODO: show crafting requirements
-        // TODO: sometimes ItemType is very large?
-        if (icon.ItemType != ItemID.None)
-        {
-            Main.instance.LoadItem(icon.ItemType);
-            var texture = TextureAssets.Item[icon.ItemType];
+        var transformedBounds = bounds.Transform(transform);
+        bool isMouseHovering = IsMouseHovering && transformedBounds.Contains(Main.MouseScreen.ToPoint());
 
-            // TODO: handle item animations
-            spriteBatch.Draw(
-                texture.Value,
-                icon.Position,
-                null,
-                Color.White,
-                0f,
-                texture.Size() / 2,
-                1f,
-                SpriteEffects.None,
-                0f
-            );
-        }
+        if (!isMouseHovering)
+            return;
 
         // TODO: add more info to the tooltip
-        if (isMouseHovering)
-            UICommon.TooltipMouseText(Lang._itemNameCache[icon.ItemType].Value);
+        // - Probably crafting station + crafting conditions
+        Main.instance.MouseText("");
+        Main.HoverItem = icon.DrawnItem;
     }
 
+    // TODO: fix aliasing (i think thats the right word?) when the scale isn't 1f
     private static void DrawConnectionLine(SpriteBatch spriteBatch, Vector2 start, float offset, bool isVertical)
     {
         const float ConnectionLineWidth = 2;

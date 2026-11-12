@@ -2,7 +2,8 @@ namespace InterfacePlus.Content.CraftTree;
 
 public record CraftTreeIcon(
     Vector2 Position,
-    int ItemType,
     CraftTreeIcon Parent,
-    List<CraftTreeIcon> Children
+    List<CraftTreeIcon> Children,
+    int ItemType,
+    Item DrawnItem
 );

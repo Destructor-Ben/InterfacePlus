@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using InterfacePlus.Utilities;
 using Terraria.GameContent.UI;
 using Terraria.GameContent.UI.Elements;
@@ -32,6 +33,8 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 
     private Asset<Texture2D> craftIcon;
     private Asset<Texture2D> stationsIcon;
+
+    private static float Padding => 5f;
 
     public void Load(Mod mod)
     {
@@ -114,7 +117,7 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
         topBar = new UIElement
         {
             Width = { Percent = 1f },
-            Height = { Pixels = TextureAssets.InventoryBack.Height() },
+            Height = { Pixels = ItemSlotUtils.PanelTexture.Height() },
         };
         rootPanel.Append(topBar);
 
@@ -131,7 +134,6 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 
     private void CreateTopBarUI()
     {
-        const float Padding = 5f;
         float left = 0;
 
         CreateButton(Assets.Textures.UI.TransformButton_ZoomIn.Asset,  () => craftTree.HandleZoom(true));
@@ -238,13 +240,8 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
     // TODO: how to handle overflow?
     private void DrawRecipe(SpriteBatch spriteBatch)
     {
-        const float Padding = 5f;
-
         if (RootItemType == ItemID.None)
             return;
-
-        // TODO: temp
-        // spriteBatch.Draw(TextureAssets.MagicPixel.Value, topBar.GetDimensions().ToRectangle(), null, Color.Red);
 
         // TODO: how to handle multiple recipes?
         var recipe = Main.recipe.FirstOrDefault(r => r.createItem.type == RootItemType);
@@ -253,13 +250,12 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 
         // Craft slot
         var pos = topBar.GetInnerDimensions().Position();
-        DrawItemSlot(spriteBatch, recipe.createItem, pos, out var bounds);
-        pos.X += bounds.Width + Padding;
+        DrawSlot(spriteBatch, recipe.createItem, ref pos);
 
         // Craft icon
         spriteBatch.Draw(
             craftIcon.Value,
-            pos + Vector2.UnitY * bounds.Height / 2f,
+            pos + Vector2.UnitY * ItemSlotUtils.PanelTexture.Height() / 2f,
             null,
             Color.White,
             0f,
@@ -272,15 +268,9 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
         pos.X += craftIcon.Width() + Padding;
 
         // Ingredients
-        int ingredientCount = recipe.requiredItem.Count;
-        float ingredientScale = Math.Min(11f / (float)ingredientCount, 1f);
-        for (int j = 0; j < ingredientCount; j++)
+        foreach (var ingredient in recipe.requiredItem)
         {
-            Item item = recipe.requiredItem[j];
-            UILinkPointNavigator.Shortcuts.NewCraftingUI_MaterialIndex = j;
-            DrawItemSlot(spriteBatch, item, pos, out var _, 1f * ingredientScale);
-
-            pos.X += bounds.Width * ingredientScale + Padding;
+            DrawSlot(spriteBatch, ingredient, ref pos);
         }
 
         // Stations icon
@@ -297,7 +287,7 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 
         spriteBatch.Draw(
             stationsIcon.Value,
-            pos + Vector2.UnitY * bounds.Height / 2f,
+            pos + Vector2.UnitY * ItemSlotUtils.PanelTexture.Height() / 2f,
             null,
             Color.White,
             0f,
@@ -311,75 +301,49 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 
         // Crafting stations
         if (recipe.requiredTile >= 0) {
-            DrawStationSlot(spriteBatch, ItemID.None, ref pos);
+            DrawSlot(spriteBatch, ItemID.None, ref pos);
             // TODO: use fake Air item, just draw the crafting station in the slot
         }
 
         if (recipe.needWater)
-            DrawStationSlot(spriteBatch, ItemID.WaterBucket, ref pos);
+            DrawSlot(spriteBatch, ItemID.WaterBucket, ref pos);
 
         if (recipe.needHoney)
-            DrawStationSlot(spriteBatch, ItemID.HoneyBucket, ref pos);
+            DrawSlot(spriteBatch, ItemID.HoneyBucket, ref pos);
 
         if (recipe.needLava)
-            DrawStationSlot(spriteBatch, ItemID.LavaBucket, ref pos);
+            DrawSlot(spriteBatch, ItemID.LavaBucket, ref pos);
 
         if (recipe.needSnowBiome)
-            DrawStationSlot(spriteBatch, ItemID.SnowBlock, ref pos);
+            DrawSlot(spriteBatch, ItemID.SnowBlock, ref pos);
 
         if (recipe.needGraveyardBiome)
-            DrawStationSlot(spriteBatch, ItemID.Tombstone, ref pos);
+            DrawSlot(spriteBatch, ItemID.Tombstone, ref pos);
 
         if (recipe.needTorchGodsFavor)
-            DrawStationSlot(spriteBatch, ItemID.TorchGodsFavor, ref pos);
+            DrawSlot(spriteBatch, ItemID.TorchGodsFavor, ref pos);
 
         if (recipe.needMechdusa)
-            DrawStationSlot(spriteBatch, ItemID.MechdusaSummon, ref pos);
+            DrawSlot(spriteBatch, ItemID.MechdusaSummon, ref pos);
 
         // TODO: handle other conditions that mods can add
     }
 
-    private static void DrawStationSlot(SpriteBatch spriteBatch, int itemType, ref Vector2 pos)
+    private static void DrawSlot(SpriteBatch spriteBatch, int itemType, ref Vector2 pos)
     {
         var item = new Item(itemType);
-        DrawStationSlot(spriteBatch, item, ref pos);
+        DrawSlot(spriteBatch, item, ref pos);
     }
 
-    private static void DrawStationSlot(SpriteBatch spriteBatch, Item item, ref Vector2 pos)
+    private static void DrawSlot(SpriteBatch spriteBatch, Item item, ref Vector2 pos)
     {
-        DrawItemSlot(spriteBatch, item, pos, out var bounds);
-        pos.X += bounds.Width;
-    }
+        var bounds = ItemSlotUtils.DrawCraftTreeSlot(spriteBatch, item, pos);
+        pos.X += bounds.Width + Padding;
 
-    // Returns true if the mouse is hovering
-    // TODO: customize the back panel used to be the same one as in the craft tree
-    private static bool DrawItemSlot(SpriteBatch spriteBatch, Item item, Vector2 pos, out Rectangle bounds, float scale = 1f)
-    {
-        var inventoryBack = Main.inventoryBack;
-        Main.inventoryBack = Color.White * 0.7490196f;
-        float inventoryScale = Main.inventoryScale;
-        Main.inventoryScale = scale;
+        if (!bounds.Contains(Main.MouseScreen.ToPoint()))
+            return;
 
-        ItemSlot.Draw(spriteBatch, ref item, ItemSlot.Context.InWorldDisplay, pos, Color.White);
-
-        Main.inventoryScale = inventoryScale;
-        Main.inventoryBack = inventoryBack;
-
-        bounds = new Rectangle(
-            (int)pos.X,
-            (int)pos.Y,
-            (int)(TextureAssets.InventoryBack.Width() * scale),
-            (int)(TextureAssets.InventoryBack.Height() * scale)
-        );
-
-        bool isMouseHovering = bounds.Contains(Main.MouseScreen.ToPoint());
-
-        if (isMouseHovering)
-        {
-            Main.instance.MouseText("");
-            Main.HoverItem = item;
-        }
-
-        return isMouseHovering;
+        Main.instance.MouseText("");
+        Main.HoverItem = item;
     }
 }
