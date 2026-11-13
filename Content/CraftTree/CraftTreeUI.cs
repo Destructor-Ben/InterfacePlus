@@ -44,7 +44,7 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
     public override void OnActivate()
     {
         craftIcon = Main.Assets.Request<Texture2D>("Images/UI/Craft");
-        stationsIcon = Assets.Textures.UI.CraftingStations.Asset;
+        stationsIcon = Assets.Textures.UI.CraftingRequirements.Asset;
 
         RemoveAllChildren();
         CreateUI();
@@ -276,17 +276,9 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
             DrawSlot(spriteBatch, ingredient, ref pos);
         }
 
-        // Stations icon
-        // TODO: run the code below this first (and add the data to a list) then check if the list is empty, and if it isn't, then draw the icons
-        // TODO: how to handle crafting stations that act as other crafting stations?
-        if (recipe.requiredTile < 0
-            && !recipe.needWater
-            && !recipe.needHoney
-            && !recipe.needLava
-            && !recipe.needSnowBiome
-            && !recipe.needGraveyardBiome
-            && !recipe.needTorchGodsFavor
-            && !recipe.needMechdusa)
+        // Crafting stations
+        var craftingRequirements = CraftingHelper.GetCraftingRequirements(recipe).ToArray();
+        if (craftingRequirements.Length <= 0)
             return;
 
         spriteBatch.Draw(
@@ -303,42 +295,16 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 
         pos.X += stationsIcon.Width() + Padding;
 
-        // Crafting station
-        if (recipe.requiredTile >= 0) {
-            DrawSlot(spriteBatch, ItemID.None, ref pos);
-            // TODO: use fake Air item, just draw the crafting station in the slot
-        }
-
-        if (recipe.Conditions.Count != 0)
+        foreach (var requirement in craftingRequirements)
         {
-            foreach (var condition in recipe.Conditions)
-            {
-                ModLogger.Info($"NEEDs {condition.Description}");
-            }
+            DrawSlot(spriteBatch, requirement.DrawnItem, ref pos, out var bounds);
+            requirement.DrawExtra(spriteBatch, bounds.TopLeft(), bounds.Size());
+
+            if (!bounds.Contains(Main.MouseScreen.ToPoint()))
+                continue;
+
+            UICommon.TooltipMouseText(ModInstance.GetLocalization("CraftingRequirement.Template").Format(requirement.Description));
         }
-
-        if (recipe.needWater)
-            DrawSlot(spriteBatch, ItemID.WaterBucket, ref pos);
-
-        if (recipe.needHoney)
-            DrawSlot(spriteBatch, ItemID.HoneyBucket, ref pos);
-
-        if (recipe.needLava)
-            DrawSlot(spriteBatch, ItemID.LavaBucket, ref pos);
-
-        if (recipe.needSnowBiome)
-            DrawSlot(spriteBatch, ItemID.SnowBlock, ref pos);
-
-        if (recipe.needGraveyardBiome)
-            DrawSlot(spriteBatch, ItemID.Tombstone, ref pos);
-
-        if (recipe.needTorchGodsFavor)
-            DrawSlot(spriteBatch, ItemID.TorchGodsFavor, ref pos);
-
-        if (recipe.needMechdusa)
-            DrawSlot(spriteBatch, ItemID.MechdusaSummon, ref pos);
-
-        // TODO: handle other conditions that mods can add
     }
 
     private static void DrawSlot(SpriteBatch spriteBatch, int itemType, ref Vector2 pos)
@@ -349,7 +315,12 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 
     private static void DrawSlot(SpriteBatch spriteBatch, Item item, ref Vector2 pos)
     {
-        var bounds = ItemSlotUtils.DrawCraftTreeSlot(spriteBatch, item, pos);
+        DrawSlot(spriteBatch, item, ref pos, out _);
+    }
+
+    private static void DrawSlot(SpriteBatch spriteBatch, Item item, ref Vector2 pos, out Rectangle bounds)
+    {
+        bounds = ItemSlotUtils.DrawCraftTreeSlot(spriteBatch, item, pos);
         pos.X += bounds.Width + Padding;
 
         if (!bounds.Contains(Main.MouseScreen.ToPoint()))

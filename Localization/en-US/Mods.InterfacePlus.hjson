@@ -7,3 +7,8 @@ UI: {
 		ResetTransform: Reset the scale and movement of the craft tree
 	}
 }
+
+CraftingRequirement: {
+	Template: Crafting requirement: {0}
+	CraftingStation: At {0}
+}

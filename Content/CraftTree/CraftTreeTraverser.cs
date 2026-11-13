@@ -12,6 +12,7 @@ public static class CraftTreeTraverser
     // - npc loot
     // - npc shops
     // - chest loot
+    // TODO: move to CraftingHelper
     public static IEnumerable<INodeSource> GetSourcesForItem(int itemType, int stack)
     {
         List<INodeSource> sources = [];
