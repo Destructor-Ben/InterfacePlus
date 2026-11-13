@@ -50,7 +50,22 @@ public record CraftingStationRequirement(int TileType) : ICraftingRequirement
         TileID.CrystalBall          => ItemID.CrystalBall,
         TileID.Autohammer           => ItemID.Autohammer,
         TileID.LunarCraftingStation => ItemID.LunarCraftingStation,
-        // TODO: add more crafting stations
+        TileID.Campfire             => ItemID.Campfire,
+        TileID.Kegs                 => ItemID.Keg,
+        TileID.TeaKettle            => ItemID.TeaKettle,
+        TileID.Blendomatic          => ItemID.BlendOMatic,
+        TileID.MeatGrinder          => ItemID.MeatGrinder,
+        TileID.BoneWelder           => ItemID.BoneWelder,
+        TileID.GlassKiln            => ItemID.GlassKiln,
+        TileID.HoneyDispenser       => ItemID.HoneyDispenser,
+        TileID.IceMachine           => ItemID.IceMachine,
+        TileID.LivingLoom           => ItemID.LivingLoom,
+        TileID.SkyMill              => ItemID.SkyMill,
+        TileID.Solidifier           => ItemID.Solidifier,
+        TileID.LesionStation        => ItemID.LesionStation,
+        TileID.FleshCloningVat      => ItemID.FleshCloningVaat,
+        TileID.SteampunkBoiler      => ItemID.SteampunkBoiler,
+        TileID.LihzahrdFurnace      => ItemID.LihzahrdFurnace,
         _                           => ItemID.None,
     };
 
