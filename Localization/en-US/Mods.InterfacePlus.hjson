@@ -5,6 +5,11 @@ UI: {
 		DisplayName: Crafting Tree
 		FitTree: Fit the crafting tree to the screen
 		ResetTransform: Reset the scale and movement of the craft tree
+
+		RecipeCycling: {
+			Cycle: Cycle Recipes
+			RecipeX: Recipe {0}
+		}
 	}
 }
 

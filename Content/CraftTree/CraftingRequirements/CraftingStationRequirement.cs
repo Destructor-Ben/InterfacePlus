@@ -67,6 +67,7 @@ public record CraftingStationRequirement(int TileType) : ICraftingRequirement
         TileID.SteampunkBoiler      => ItemID.SteampunkBoiler,
         TileID.LihzahrdFurnace      => ItemID.LihzahrdFurnace,
         _                           => ItemID.None,
+        // TODO: lookup modded crafting stations
     };
 
     public void DrawExtra(SpriteBatch spriteBatch, Vector2 slotTopLeft, Vector2 slotSize)

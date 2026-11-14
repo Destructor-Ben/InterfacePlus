@@ -1,3 +1,5 @@
+using System.Numerics;
+using InterfacePlus.Content.UIElements;
 using InterfacePlus.Utilities;
 using Terraria.GameContent.UI;
 using Terraria.GameContent.UI.Elements;
@@ -13,6 +15,7 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
     public static CraftTreeUI Instance { get; private set; }
 
     public int RootItemType { get; private set; } = ItemID.None;
+    private Recipe[] displayedRecipes;
 
     public UIState PreviousUIState { get; set; } // Unused
 
@@ -29,6 +32,11 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
     private CraftTreeView craftTree;
     private UIElement topBar;
 
+    private UIDropdown<int> recipeCycleDropdown;
+    private static int CycleRecipeCycleOption => -1;
+    private bool ShowRecipeCycleDropdown => displayedRecipes.Length > 1;
+    private float timeOnOpen;
+
     private Asset<Texture2D> craftIcon;
     private Asset<Texture2D> stationsIcon;
 
@@ -43,22 +51,40 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
 
     public override void OnActivate()
     {
+        timeOnOpen = Main.GlobalTimeWrappedHourly;
+
         craftIcon = Main.Assets.Request<Texture2D>("Images/UI/Craft");
         stationsIcon = Assets.Textures.UI.CraftingRequirements.Asset;
+;
+        displayedRecipes = Main.recipe.Where(r => r.createItem.type == RootItemType).ToArray();
 
         RemoveAllChildren();
         CreateUI();
-        SetRootItem(RootItemType);
-    }
-
-    public void SetRootItem(int itemType)
-    {
-        RootItemType = itemType;
-
         Recalculate();
 
         if (RootItemType != ItemID.None && craftTree is not null)
             craftTree.SetItem(RootItemType);
+
+        if (!ShowRecipeCycleDropdown)
+        {
+            recipeCycleDropdown = null;
+            return;
+        }
+
+        var options = new List<UIDropdown<int>.Option>();
+
+        options.Add(new(ModInstance.GetLocalization("UI.CraftTree.RecipeCycling.Cycle").Value, CycleRecipeCycleOption));
+
+        for (int i = 0; i < displayedRecipes.Length; i++)
+        {
+            options.Add(new(ModInstance.GetLocalization("UI.CraftTree.RecipeCycling.RecipeX").Format(i + 1), i));
+        }
+
+        // TODO: proper origin
+        var dropdownOrigin = Vector2.UnitX * 0;
+        recipeCycleDropdown = new UIDropdown<int>(options, CycleRecipeCycleOption, dropdownOrigin);
+        recipeCycleDropdown.CopyStyle(craftTree);
+        recipeCycleDropdown.OnLeftClick += (_, _) => CloseCycleRecipeDropdown();
     }
 
     public static void OpenForItem(int itemType, bool quiet = false)
@@ -152,6 +178,10 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
         CreateButton(Assets.Textures.UI.TransformButton_FitTree.Asset, () => craftTree.FitTree(),        true, ModInstance.GetLocalization("UI.CraftTree.FitTree"));
         CreateButton(Assets.Textures.UI.TransformButton_Reset.Asset,   () => craftTree.ResetTransform(), true, ModInstance.GetLocalization("UI.CraftTree.ResetTransform"));
 
+        // TODO: temp
+        if (ShowRecipeCycleDropdown)
+            CreateButton(Assets.Textures.UI.TransformButton_FitTree.Asset, ToggleCycleRecipeDropdown, true);
+
         return;
 
         void CreateButton(Asset<Texture2D> icon, Action action, bool singleClickEffect = false, LocalizedText tooltip = null)
@@ -197,6 +227,22 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
         }
     }
 
+    private void CloseCycleRecipeDropdown()
+    {
+        rootPanel.RemoveChild(recipeCycleDropdown);
+    }
+
+    private void ToggleCycleRecipeDropdown()
+    {
+        if (recipeCycleDropdown.Parent != null) {
+            CloseCycleRecipeDropdown();
+            return;
+        }
+
+        rootPanel.RemoveChild(recipeCycleDropdown);
+        rootPanel.Append(recipeCycleDropdown);
+    }
+
     public void HandleBackButtonUsage()
     {
         GoBack();
@@ -239,20 +285,35 @@ public class CraftTreeUI : UIState, ILoadable, IHaveBackButtonCommand
         DrawRecipe(spriteBatch);
     }
 
-    // Modified from NewCraftingUI.DrawChildren()
+    // Heavily modified from NewCraftingUI.DrawChildren()
     // TODO: how to handle overflow?
     private void DrawRecipe(SpriteBatch spriteBatch)
     {
         if (RootItemType == ItemID.None)
             return;
 
-        // TODO: how to handle multiple recipes?
-        var recipe = Main.recipe.FirstOrDefault(r => r.createItem.type == RootItemType);
+        int recipeIndex = 0;
+
+        if (recipeCycleDropdown is not null)
+        {
+            int currentValue = recipeCycleDropdown.CurrentValue;
+            if (recipeCycleDropdown.HoverValueIsValid)
+                currentValue = recipeCycleDropdown.CurrentHoveredValue;
+
+            float time = (Main.GlobalTimeWrappedHourly - timeOnOpen);
+
+            recipeIndex = currentValue == CycleRecipeCycleOption
+                ? (int)Math.Floor(time / 2f) % displayedRecipes.Length
+                : currentValue;
+        }
+
+        var recipe = displayedRecipes[recipeIndex];
         if (recipe == null)
             return;
 
-        // Craft slot
         var pos = topBar.GetInnerDimensions().Position();
+
+        // Craft slot
         DrawSlot(spriteBatch, recipe.createItem, ref pos);
 
         // Craft icon
